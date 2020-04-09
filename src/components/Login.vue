@@ -4,7 +4,13 @@
       <div class="login_img">
         <img src="../assets/logo.png" alt />
       </div>
-      <el-form :model="LoginForm" :rules="rules" ref="loginform" label-width="0px" class="login_form">
+      <el-form
+        :model="LoginForm"
+        :rules="rules"
+        ref="loginform"
+        label-width="0px"
+        class="login_form"
+      >
         <!-- 用户名 -->
         <el-form-item prop="username">
           <el-input prefix-icon="iconfont iconfolder" v-model="LoginForm.username"></el-input>
@@ -31,8 +37,8 @@ export default {
   data () {
     return {
       LoginForm: {
-        username: 'fff',
-        password: '12345'
+        username: 'admin',
+        password: '123456'
       },
       rules: {
         username: [
@@ -47,18 +53,20 @@ export default {
     }
   },
   methods: {
-    Reset () {
+    Reset() {
       console.log(this)
       this.$refs.loginform.resetFields()
     },
-    Login () {
+    Login() {
       this.$refs.loginform.validate(async valid => {
         console.log(valid)
         if (!valid) return
         // // eslint-disable-next-line no-unused-vars
         const { data: res } = await this.$http.post('login', this.LoginForm)
-        if (res.meta.status !== 200) return console.log('chenggong')
-        console.log('shibai')
+        if (res.meta.status !== 200) return this.$message.error('登录失败！')
+        this.$message.success('登录成功！')
+        window.sessionStorage.setItem('token', res.data.token)
+        this.$router.push('/home')
       })
     }
   }

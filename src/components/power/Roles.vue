@@ -75,7 +75,12 @@
       </el-table>
     </el-card>
     <!-- 分配权限对话框 -->
-    <el-dialog title="分配权限" :visible.sync="setRightdialogVisible" width="50%">
+    <el-dialog
+      title="分配权限"
+      :visible.sync="setRightdialogVisible"
+      width="50%"
+      @close="setRightDialogClose"
+    >
       <!-- 树形控件 -->
       <el-tree
         :data="rightlist"
@@ -84,10 +89,11 @@
         show-checkbox
         :default-expand-all="true"
         :default-checked-keys="defKeys"
+        ref="treeRef"
       ></el-tree>
       <span slot="footer" class="dialog-footer">
         <el-button @click="setRightdialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="setRightdialogVisible = false">确 定</el-button>
+        <el-button type="primary" @click="allotRights">确 定</el-button>
       </span>
     </el-dialog>
   </div>
@@ -109,7 +115,9 @@ export default {
         children: 'children'
       },
       //   默认树形选项勾选
-      defKeys: []
+      defKeys: [],
+      //   当前即将分配角色的id
+      roleId: ''
     }
   },
   created() {
@@ -148,6 +156,7 @@ export default {
     },
     // 显示分配权限对话框
     async showSetRightDialog(role) {
+      this.roleId = role.id
       // 获取所有权限数据
       const { data: res } = await this.$http.get('rights/tree')
       if (res.meta.status !== 200) return this.$message.error('获取权限失败')
@@ -166,6 +175,26 @@ export default {
       node.children.forEach(element => {
         this.getLeafKeys(element, arr)
       })
+    },
+    // 监听分配权限对话框关闭事件
+    setRightDialogClose() {
+      this.defKeys = []
+    },
+    // 点击为角色分配权限
+    async allotRights() {
+      const keys = [
+        ...this.$refs.treeRef.getCheckedKeys(),
+        ...this.$refs.treeRef.getHalfCheckedKeys()
+      ]
+      const idstr = keys.join(',')
+      const { data: res } = await this.$http.post(
+        `roles/${this.roleId}/rights`,
+        { rids: idstr }
+      )
+      if (res.meta.status !== 200) return this.$message.error('分配权限失败')
+      this.$message.success('分配权限成功')
+      this.getRolesList()
+      this.setRightdialogVisible = false
     }
   }
 }

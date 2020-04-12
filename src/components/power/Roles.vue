@@ -164,7 +164,6 @@ export default {
       this.rightlist = res.data
       this.getLeafKeys(role, this.defKeys)
       this.setRightdialogVisible = true
-      console.log(res.data)
     },
     // 通过递归获取三级权限id并保存到defKeys中
     getLeafKeys(node, arr) {

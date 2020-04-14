@@ -8,3 +8,6 @@ body,html,#app{
     margin-bottom: 10px;
     font-size: 14px;
   }
+.el-cascader-menu{
+    height: 300px;
+}

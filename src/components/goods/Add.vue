@@ -87,7 +87,7 @@
             <!-- 富文本编辑器组件 -->
             <quill-editor v-model="addForm.goods_introduce"></quill-editor>
             <!-- 添加商品按钮 -->
-            <el-button class="addGoods" type="primary">添加商品</el-button>
+            <el-button class="addGoods" type="primary" @click="add">添加商品</el-button>
           </el-tab-pane>
         </el-tabs>
       </el-form>
@@ -101,6 +101,7 @@
 </template>
 
 <script>
+import _ from 'lodash'
 export default {
   data() {
     return {
@@ -117,7 +118,8 @@ export default {
         // 图片数组
         pics: [],
         // 商品详情描述
-        goods_introduce: ''
+        goods_introduce: '',
+        attrs: []
       },
       //   商品分类数据
       catelist: [],
@@ -260,6 +262,42 @@ export default {
       //   将图片信息push到pics
       this.addForm.pics.push(picInfo)
       console.log(this.addForm)
+    },
+    // 添加商品
+    add() {
+      this.$refs.addFormRef.validate(async valid => {
+        if (!valid) {
+          return this.$message.error('请填写必要的表单项！')
+        }
+        // 执行添加业务
+        // lodash cloneDeep(obj)深拷贝
+        const form = _.cloneDeep(this.addForm)
+        form.goods_cat = form.goods_cat.join(',')
+        // 处理动态参数
+        this.manyTableDate.forEach(item => {
+          const newInfo = {
+            attr_id: item.attr_id,
+            attr_value: item.attr_vals.join(',')
+          }
+          this.addForm.attrs.push(newInfo)
+        })
+        // 处理静态属性
+        this.onlyTableDate.forEach(item => {
+          const newInfo = {
+            attr_id: item.attr_id,
+            attr_value: item.attr_vals
+          }
+          this.addForm.attrs.push(newInfo)
+        })
+        form.attrs = this.addForm.attrs
+        // 发起请求添加商品，商品名称必须唯一
+        const { data: res } = await this.$http.post('goods', form)
+        if (res.meta.status !== 201) {
+          return this.$message.error('添加商品失败！')
+        }
+        this.$message.success('添加商品成功！')
+        this.$router.push('/goods')
+      })
     }
   },
   computed: {
@@ -283,7 +321,7 @@ export default {
 .previewImg {
   width: 100%;
 }
-.addGoods{
-    margin-top: 10px;
+.addGoods {
+  margin-top: 10px;
 }
 </style>
